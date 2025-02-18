@@ -28,7 +28,7 @@
             width: 100px;
             height: 100px;
             margin: 0 auto 1rem;
-            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0xMiAxMmMtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNiA2LTIuNjg2IDYtNi0yLjY4Ni02LTYtNnptMCAyYzIuMjEgMCA0IDEuNzkxIDQgNHMtMS43OSA0LTQgNC00LTEuNzkxLTQtNCAxLjc5LTQgNC00em0wLTEyYy0xLjEwNCAwLTIgLjg5Ni0yIDJzLjg5NiAyIDIgMiAyLS44OTYgMi0yLS44OTYtMi0yLTJ6bTAgNmMtLjU1MiAwLTEgLjQ0Ny0xIDF2NGMwIC41NTMuNDQ4IDEgMSAxczEtLjQ0NyAxLTF2LTRjMC0uNTUzLS40NDgtMS0xLTF6IiBmaWxsPSIjZmY5OWNjIi8+PC9zdmc+') no-repeat center;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0xMiAxM2MtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNiA2LTIuNjg2IDYtNi0yLjY4Ni02LTYtNnptMCAyYzIuMjEgMCA0IDEuNzkxIDQgNHMtMS43OSA0LTQgNC00LTEuNzkxLTQtNCAxLjc5LTQgNC00em0wLTEyYy0xLjEwNCAwLTIgLjg5Ni0yIDJzLjg5NiAyIDIgMiAyLS44OTYgMi0yLS44OTYtMi0yLTJ6bTAgNmMtLjU1MiAwLTEgLjQ0Ny0xIDF2NGMwIC41NTMuNDQ4IDEgMSAxczEtLjQ0NyAxLTF2LTRjMC0uNTUzLS40NDgtMS0xLTF6IiBmaWxsPSIjZmY5OWNjIi8+PC9zdmc+') no-repeat center;
         }
 
         .message-card {
@@ -85,8 +85,7 @@
             AUTO_JUMP_DELAY: 3000,
             ALLOWED_DOMAINS: [
                 'afeather.cn',
-                'docs.afeather.cn',
-                'app.afeather.cn'
+                'docs.afeather.cn'
             ]
         };
 
@@ -102,16 +101,6 @@
         // 安全验证模块
         const securityCheck = (() => {
             try {
-                const referrer = document.referrer;
-                if (!referrer) throw new Error('no_referrer');
-
-                const referrerUrl = new URL(referrer);
-                const hostname = referrerUrl.hostname;
-
-                if (!isAllowedDomain(hostname)) {
-                    throw new Error('invalid_domain');
-                }
-
                 const targetUrl = new URLSearchParams(location.search).get('url');
                 if (!targetUrl) throw new Error('no_target_url');
                 
@@ -130,24 +119,14 @@
         // 消息模板
         function showMessage(type, data = {}) {
             const messages = {
-                no_referrer: {
-                    emoji: '🔍',
-                    title: '访问来源未知',
-                    content: '请通过片羽官方页面访问本服务',
-                },
-                invalid_domain: {
-                    emoji: '🚫',
-                    title: '非官方访问渠道',
-                    content: `检测到非常用入口：<br><code>${document.referrer || '未知来源'}</code>`,
-                },
                 no_target_url: {
                     emoji: '❓',
-                    title: '目标地址缺失',
-                    content: '请通过正确的链接访问哦~',
+                    title: '你要去哪里呀',
+                    content: '请把地址传给我哦😀',
                 },
                 whitelist: {
                     emoji: '🔒',
-                    title: '正在前往安全站点...',
+                    title: '芜湖~目标地址很安全~~马上传送~',
                     content: `即将访问白名单网站：<br>
                              <span class="target-domain">${data.domain}</span>
                              <div class="whitelist-notice">（该网站已通过安全验证）</div>`,
@@ -155,8 +134,8 @@
                 },
                 normal: {
                     emoji: '⚠️',
-                    title: '即将离开片羽',
-                    content: `即将访问外部网站：<br>
+                    title: '真的要离开片羽吗',
+                    content: `即将访问未经认证的外部网站：<br>
                             <span class="target-domain">${data.domain}</span>
                             <div class="whitelist-notice">（请确认该网站的安全性）</div>`,
                 }
@@ -177,9 +156,6 @@
                 ` : ''}
                 ${!template.autoJump ? `
                     <div>
-                        ${type === 'invalid_domain' ? `
-                            <button onclick="location.href='https://afeather.cn'">前往官网</button>
-                        ` : ''}
                         ${type === 'normal' ? `
                             <button onclick="confirmJump()">继续访问</button>
                             <button onclick="location.href='https://afeather.cn'">取消返回</button>
