@@ -83,7 +83,8 @@
                 'afeather.cn',
                 'hitokoto.cn',
                 'github.com',
-                'zhilu.cyou'
+                'zhilu.cyou',
+                'eees.blog'
             ],
             // 允许上游域名
             AUTO_JUMP_DELAY: 3000,
@@ -161,8 +162,8 @@
                 ${!template.autoJump ? `
                     <div>
                         ${type === 'normal' ? `
+                        <button onclick="location.href='https://afeather.cn'">返回片羽官网</button>
                             <button onclick="confirmJump()">继续访问</button>
-                            <button onclick="location.href='https://afeather.cn'">取消返回</button>
                         ` : ''}
                     </div>
                 ` : ''}
