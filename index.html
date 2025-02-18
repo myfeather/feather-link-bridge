@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>片羽 | 安全跳转</title>
     <style>
+        /* 保持原有样式不变 */
         :root {
             --primary: #ff99cc;
             --secondary: #80d4ff;
@@ -72,9 +73,7 @@
 <body>
     <div class="security-icon"></div>
     
-    <div id="message-container" class="message-card">
-        <!-- 动态内容 -->
-    </div>
+    <div id="message-container" class="message-card"></div>
 
     <script>
         // 配置项
@@ -83,26 +82,36 @@
                 'afeather.cn',
                 'hitokoto.cn'
             ],
-            AUTO_JUMP_DELAY: 3000  // 白名单自动跳转延迟
+            AUTO_JUMP_DELAY: 3000,
+            ALLOWED_DOMAINS: [
+                'afeather.cn',
+                'docs.afeather.cn',
+                'app.afeather.cn'
+            ]
+        };
+
+        // 增强版域名验证
+        const isAllowedDomain = (hostname) => {
+            const cleanHost = hostname.toLowerCase().replace(/\.+$/, '');
+            return CONFIG.ALLOWED_DOMAINS.some(domain => {
+                const regex = new RegExp(`^(.+\\.)?${domain.replace('.', '\\.')}$`);
+                return regex.test(cleanHost);
+            });
         };
 
         // 安全验证模块
         const securityCheck = (() => {
             try {
-                // 验证来源
                 const referrer = document.referrer;
                 if (!referrer) throw new Error('no_referrer');
 
                 const referrerUrl = new URL(referrer);
-                const hostname = referrerUrl.hostname.toLowerCase();
-                
-                // 严格域名验证
-                const isValid = /^([a-z0-9-]+\.)*afeather\.cn$/.test(hostname) 
-                    && hostname.split('.').slice(-2).join('.') === 'afeather.cn';
+                const hostname = referrerUrl.hostname;
 
-                if (!isValid) throw new Error('invalid_domain');
+                if (!isAllowedDomain(hostname)) {
+                    throw new Error('invalid_domain');
+                }
 
-                // 获取目标地址
                 const targetUrl = new URLSearchParams(location.search).get('url');
                 if (!targetUrl) throw new Error('no_target_url');
                 
@@ -118,26 +127,23 @@
             }
         })();
 
-        // 显示消息
+        // 消息模板
         function showMessage(type, data = {}) {
             const messages = {
                 no_referrer: {
                     emoji: '🔍',
-                    title: '哦？你从哪里跳过来的呀？',
-                    content: '请从片羽官方过来呦~',
-                    button: false
+                    title: '访问来源未知',
+                    content: '请通过片羽官方页面访问本服务',
                 },
                 invalid_domain: {
                     emoji: '🚫',
-                    title: '这给我干哪来了(・∀・(・∀・(・∀・*)',
-                    content: `这个<code>${document.referrer || '未知来源'}</code>是我的窝吗<br>有人把我拐走了/(ㄒoㄒ)/~~`,
-                    button: true
+                    title: '非官方访问渠道',
+                    content: `检测到非常用入口：<br><code>${document.referrer || '未知来源'}</code>`,
                 },
                 no_target_url: {
                     emoji: '❓',
-                    title: '你要去哪里呢？',
-                    content: '你看看，地址都不给我(╯▔皿▔)╯',
-                    button: true
+                    title: '目标地址缺失',
+                    content: '请通过正确的链接访问哦~',
                 },
                 whitelist: {
                     emoji: '🔒',
@@ -149,59 +155,58 @@
                 },
                 normal: {
                     emoji: '⚠️',
-                    title: '你真的要离开片羽嘛/(ㄒoㄒ)/~~',
+                    title: '即将离开片羽',
                     content: `即将访问外部网站：<br>
                             <span class="target-domain">${data.domain}</span>
                             <div class="whitelist-notice">（请确认该网站的安全性）</div>`,
-                    button: true
                 }
             };
 
-            const { emoji, title, content, button, autoJump } = messages[type] || {};
-            
+            const template = messages[type] || {
+                emoji: '❌',
+                title: '发生未知错误',
+                content: '请稍后再试'
+            };
+
             document.getElementById('message-container').innerHTML = `
-                <div class="emoji">${emoji}</div>
-                <h2>${title}</h2>
-                <p>${content}</p>
-                ${button ? 
-                    `<div>
-                        <button onclick="location.href='https://afeather.cn'">去片羽官网</button>
-                        <button onclick="confirmJump()">继续访问</button>
-                    </div>` : ''}
+                <div class="emoji">${template.emoji}</div>
+                <h2>${template.title}</h2>
+                <p>${template.content}</p>
+                ${template.autoJump ? `
+                    <div class="countdown">${CONFIG.AUTO_JUMP_DELAY/1000}秒后自动跳转...</div>
+                ` : ''}
+                ${!template.autoJump ? `
+                    <div>
+                        ${type === 'invalid_domain' ? `
+                            <button onclick="location.href='https://afeather.cn'">前往官网</button>
+                        ` : ''}
+                        ${type === 'normal' ? `
+                            <button onclick="confirmJump()">继续访问</button>
+                            <button onclick="location.href='https://afeather.cn'">取消返回</button>
+                        ` : ''}
+                    </div>
+                ` : ''}
             `;
 
-            if (autoJump) {
+            if (template.autoJump) {
                 setTimeout(() => {
                     window.location.href = data.url;
                 }, CONFIG.AUTO_JUMP_DELAY);
             }
         }
 
-        // 目标域名验证
-        function checkWhitelist(domain) {
-            return CONFIG.WHITELIST.some(whitelistDomain => {
-                const regex = new RegExp(`^(.*\\.)?${whitelistDomain.replace('.', '\\.')}$`);
-                return regex.test(domain);
-            });
-        }
-
         // 主流程
         if (securityCheck.valid) {
             try {
                 const targetDomain = securityCheck.target.hostname;
-                const isWhitelisted = checkWhitelist(targetDomain);
-                
-                if (isWhitelisted) {
-                    showMessage('whitelist', {
-                        domain: targetDomain,
-                        url: securityCheck.target.toString()
-                    });
-                } else {
-                    showMessage('normal', {
-                        domain: targetDomain,
-                        url: securityCheck.target.toString()
-                    });
-                }
+                const isWhitelisted = CONFIG.WHITELIST.some(domain => 
+                    targetDomain === domain || targetDomain.endsWith(`.${domain}`)
+                );
+
+                showMessage(isWhitelisted ? 'whitelist' : 'normal', {
+                    domain: targetDomain,
+                    url: securityCheck.target.toString()
+                });
             } catch {
                 showMessage('no_target_url');
             }
