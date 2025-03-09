@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>片羽 | 安全跳转</title>
+    <link rel="icon" href="./favicon.ico">
+    <title>一片羽 | 安全跳转</title>
     <style>
         /* 保持原有样式不变 */
         :root {
@@ -22,13 +23,6 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-        }
-
-        .security-icon {
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 1rem;
-            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGQ9Ik0xMiAxM2MtMy4zMTQgMC02IDIuNjg2LTYgNnMyLjY4NiA2IDYgNiA2LTIuNjg2IDYtNi0yLjY4Ni02LTYtNnptMCAyYzIuMjEgMCA0IDEuNzkxIDQgNHMtMS43OSA0LTQgNC00LTEuNzkxLTQtNCAxLjc5LTQgNC00em0wLTEyYy0xLjEwNCAwLTIgLjg5Ni0yIDJzLjg5NiAyIDIgMiAyLS44OTYgMi0yLS44OTYtMi0yLTJ6bTAgNmMtLjU1MiAwLTEgLjQ0Ny0xIDF2NGMwIC41NTMuNDQ4IDEgMSAxczEtLjQ0NyAxLTF2LTRjMC0uNTUzLS40NDgtMS0xLTF6IiBmaWxsPSIjZmY5OWNjIi8+PC9zdmc+') no-repeat center;
         }
 
         .message-card {
@@ -71,8 +65,6 @@
     </style>
 </head>
 <body>
-    <div class="security-icon"></div>
-    
     <div id="message-container" class="message-card"></div>
 
     <script>
@@ -81,16 +73,21 @@
             // 允许直接访问的域名
             WHITELIST: [
                 'afeather.cn',
-                'hitokoto.cn',
                 'github.com',
                 'zhilu.cyou',
-                'eees.blog'
+                'eees.blog',
+                'vercel.com',
+                'featherverse.cn',
             ],
             // 允许上游域名
             AUTO_JUMP_DELAY: 3000,
             ALLOWED_DOMAINS: [
                 'afeather.cn',
-                'docs.afeather.cn'
+                'zhilu.cyou',
+                'eees.blog',
+                'github.com',
+                'vercel.com',
+                'featherverse.cn',
             ]
         };
 
@@ -162,7 +159,7 @@
                 ${!template.autoJump ? `
                     <div>
                         ${type === 'normal' ? `
-                        <button onclick="location.href='https://afeather.cn'">返回片羽官网</button>
+                        <button onclick="location.href='http://afeather.cn'">返回片羽官网</button>
                             <button onclick="confirmJump()">继续访问</button>
                         ` : ''}
                     </div>
