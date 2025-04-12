@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>一片羽 | 安全跳转</title>
+        <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('./font/hw.ttf') format('truetype');
+        }
+        /* 保持原有样式不变 */
+        :root {
+            --primary: #ff99cc;
+            --secondary: #80d4ff;
+        }
+
+        body {
+            font-family: 'CustomFont', 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #d9a7ff, #ffb6e6);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            color: #333;
+            text-align: center;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .message-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            margin: 1rem auto;
+            max-width: 500px;
+        }
+
+        .emoji {
+            font-size: 2.5rem;
+            margin: 0 0 1rem;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 24px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 0.5rem;
+        }
+
+        .target-domain {
+            color: var(--primary);
+            font-weight: bold;
+            word-break: break-all;
+        }
+
+        .whitelist-notice {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 1rem;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--primary);
+            border-radius: 2px;
+            animation: progress 3000ms linear forwards;
+            transform-origin: left;
+        }
+        
+        @keyframes progress {
+            0% {
+                transform: scaleX(0);
+            }
+            100% {
+                transform: scaleX(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="message-container" class="message-card"></div>
+
+    <script>
+        // 配置项
+        const CONFIG = {
+            WHITELIST: ["afeather.cn","github.com","zhilu.cyou","eees.blog","vercel.com","featherverse.cn","afeather.org","itedev.com"],
+            AUTO_JUMP_DELAY: 3000,
+            ALLOWED_DOMAINS: ["afeather.cn","featherverse.cn","afeather.org"],
+            DEFAULT_MATCH_LEVEL: 'full'
+        };
+
+        // 增强版域名验证
+        const isAllowedDomain = (hostname) => {
+            const cleanHost = hostname.toLowerCase().replace(/\.+$/, '');
+            return CONFIG.ALLOWED_DOMAINS.some(domain => {
+                const regex = new RegExp(`^(.+\\.)?${domain.replace('.', '\\.')}$`);
+                return regex.test(cleanHost);
+            });
+        };
+
+        // 安全验证模块
+        const securityCheck = (() => {
+            try {
+                const targetUrl = new URLSearchParams(location.search).get('url');
+                if (!targetUrl) throw new Error('no_target_url');
+                
+                return {
+                    valid: true,
+                    target: new URL(decodeURIComponent(targetUrl))
+                };
+            } catch (error) {
+                return {
+                    valid: false,
+                    error: error.message
+                };
+            }
+        })();
+
+        // 消息模板
+        function showMessage(type, data = {}) {
+            const messages = {
+                no_target_url: {
+                    emoji: '❓',
+                    title: '你要去哪里呀',
+                    content: '请把地址传给我哦😀',
+                },
+                whitelist: {
+                    emoji: '🔒',
+                    title: '芜湖~目标地址很安全~~马上传送~',
+                    content: `即将访问白名单网站：<br>
+                             <span class="target-domain">${data.domain}</span>
+                             <div class="whitelist-notice">（该网站已通过安全验证）</div>`,
+                    autoJump: true
+                },
+                normal: {
+                    emoji: '⚠️',
+                    title: '真的要离开片羽吗',
+                    content: `即将访问未经认证的外部网站：<br>
+                            <span class="target-domain">${data.domain}</span>
+                            <div class="whitelist-notice">（请确认该网站的安全性）</div>`,
+                }
+            };
+
+            const template = messages[type] || {
+                emoji: '❌',
+                title: '发生未知错误',
+                content: '请稍后再试'
+            };
+
+            document.getElementById('message-container').innerHTML = `
+                <div class="emoji">${template.emoji}</div>
+                <h2>${template.title}</h2>
+                <p>${template.content}</p>
+                ${template.autoJump ? `
+                    <div class="progress-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                ` : ''}
+                ${!template.autoJump ? `
+                    <div>
+                        ${type === 'normal' ? `
+                        <button onclick="location.href='http://afeather.cn'">返回片羽官网</button>
+                            <button onclick="confirmJump()">继续访问</button>
+                        ` : ''}
+                    </div>
+                ` : ''}
+            `;
+
+            if (template.autoJump) {
+                setTimeout(() => {
+                    window.location.href = data.url;
+                }, CONFIG.AUTO_JUMP_DELAY);
+            }
+        }
+
+        // 主流程
+        if (securityCheck.valid) {
+            try {
+                const targetDomain = securityCheck.target.hostname;
+                const isWhitelisted = CONFIG.WHITELIST.some(domain => 
+                    targetDomain === domain || targetDomain.endsWith(`.${domain}`)
+                );
+
+                showMessage(isWhitelisted ? 'whitelist' : 'normal', {
+                    domain: targetDomain,
+                    url: securityCheck.target.toString()
+                });
+            } catch {
+                showMessage('no_target_url');
+            }
+        } else {
+            showMessage(securityCheck.error);
+        }
+
+        // 确认跳转
+        function confirmJump() {
+            if (securityCheck.valid) {
+                window.location.href = securityCheck.target.toString();
+            }
+        }
+    </script>
+</body>
+</html>
