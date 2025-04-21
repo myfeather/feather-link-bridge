@@ -6,28 +6,12 @@
             "matchRule": "any"
         },
         {
-            "domain": "github.com", 
-            "matchRule": "any"
-        },
-        {
-            "domain": "zhilu.cyou",
-            "matchRule": "full"
-        },
-        {
-            "domain": "vercel.com",
-            "matchRule": "full"
-        },
-        {
             "domain": "featherverse.cn",
             "matchRule": "any"
         },
         {
             "domain": "afeather.org",
             "matchRule": "any"
-        },
-        {
-            "domain": "itedev.com",
-            "matchRule": "full"
         }
     ],
     "allowedDomains": [
@@ -46,5 +30,5 @@
     ],
     "autoJumpDelay": 3000,
     "defaultMatchLevel": "full",
-    "version": "1.1.0"
+    "version": "0.0.1"
 }

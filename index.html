@@ -10,7 +10,6 @@
             font-family: 'CustomFont';
             src: url('./font/hw.ttf') format('truetype');
         }
-        /* 保持原有样式不变 */
         :root {
             --primary: #ff99cc;
             --secondary: #80d4ff;
@@ -44,8 +43,8 @@
 
         .message-card {
             background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 2rem;
             border-radius: 16px;
@@ -117,9 +116,9 @@
     <script>
         // 配置项
         const CONFIG = {
-            WHITELIST: ["afeather.cn","github.com","zhilu.cyou","eees.blog","vercel.com","featherverse.cn","afeather.org","itedev.com"],
+            WHITELIST: [],
             AUTO_JUMP_DELAY: 3000,
-            ALLOWED_DOMAINS: ["afeather.cn","featherverse.cn","afeather.org"],
+            ALLOWED_DOMAINS: [],
             DEFAULT_MATCH_LEVEL: 'full'
         };
 
@@ -137,7 +136,6 @@
             try {
                 const targetUrl = new URLSearchParams(location.search).get('url');
                 if (!targetUrl) throw new Error('no_target_url');
-                
                 return {
                     valid: true,
                     target: new URL(decodeURIComponent(targetUrl))
