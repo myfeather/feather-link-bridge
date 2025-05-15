@@ -115,12 +115,31 @@
 
     <script>
         // 配置项
-        const CONFIG = {
-            WHITELIST: [],
+        let CONFIG = {
+            WHITELIST: ["afeather.cn", "afeather.org"],
             AUTO_JUMP_DELAY: 3000,
-            ALLOWED_DOMAINS: [],
+            ALLOWED_DOMAINS: ["afeather.cn", "afeather.org"],
             DEFAULT_MATCH_LEVEL: 'full'
         };
+
+        // 加载配置文件
+        async function loadConfig() {
+            try {
+                const response = await fetch('./config.json');
+                if (!response.ok) throw new Error('Failed to load config');
+                const configData = await response.json();
+                
+                CONFIG.WHITELIST = configData.whitelist.map(item => item.domain);
+                CONFIG.ALLOWED_DOMAINS = configData.allowedDomains.map(item => item.domain);
+                CONFIG.AUTO_JUMP_DELAY = configData.autoJumpDelay || 3000;
+                CONFIG.DEFAULT_MATCH_LEVEL = configData.defaultMatchLevel || 'full';
+                
+                return true;
+            } catch (error) {
+                console.error('Error loading config:', error);
+                return false;
+            }
+        }
 
         // 增强版域名验证
         const isAllowedDomain = (hostname) => {
@@ -170,6 +189,11 @@
                     content: `即将访问未经认证的外部网站：<br>
                             <span class="target-domain">${data.domain}</span>
                             <div class="whitelist-notice">（请确认该网站的安全性）</div>`,
+                },
+                config_load_error: {
+                    emoji: '❌',
+                    title: '配置加载失败',
+                    content: '无法加载配置文件，请稍后再试'
                 }
             };
 
@@ -205,24 +229,35 @@
             }
         }
 
-        // 主流程
-        if (securityCheck.valid) {
-            try {
-                const targetDomain = securityCheck.target.hostname;
-                const isWhitelisted = CONFIG.WHITELIST.some(domain => 
-                    targetDomain === domain || targetDomain.endsWith(`.${domain}`)
-                );
-
-                showMessage(isWhitelisted ? 'whitelist' : 'normal', {
-                    domain: targetDomain,
-                    url: securityCheck.target.toString()
-                });
-            } catch {
-                showMessage('no_target_url');
+        // 初始化应用
+        async function initApp() {
+            const configLoaded = await loadConfig();
+            if (!configLoaded) {
+                showMessage('config_load_error');
+                return;
             }
-        } else {
-            showMessage(securityCheck.error);
+
+            if (securityCheck.valid) {
+                try {
+                    const targetDomain = securityCheck.target.hostname;
+                    const isWhitelisted = CONFIG.WHITELIST.some(domain => 
+                        targetDomain === domain || targetDomain.endsWith(`.${domain}`)
+                    );
+
+                    showMessage(isWhitelisted ? 'whitelist' : 'normal', {
+                        domain: targetDomain,
+                        url: securityCheck.target.toString()
+                    });
+                } catch {
+                    showMessage('no_target_url');
+                }
+            } else {
+                showMessage(securityCheck.error);
+            }
         }
+
+        // 启动应用
+        initApp();
 
         // 确认跳转
         function confirmJump() {
