@@ -12,6 +12,10 @@
         {
             "domain": "afeather.org",
             "matchRule": "any"
+        },
+        {
+            "domain": "itdev.com",
+            "matchRule": "any"
         }
     ],
     "allowedDomains": [

@@ -142,12 +142,24 @@
         }
 
         // 增强版域名验证
-        const isAllowedDomain = (hostname) => {
+        // 域名匹配规则处理
+        const matchDomain = (hostname, domainConfig) => {
             const cleanHost = hostname.toLowerCase().replace(/\.+$/, '');
-            return CONFIG.ALLOWED_DOMAINS.some(domain => {
+            const domain = domainConfig.domain.toLowerCase();
+            
+            if (domainConfig.matchRule === 'any') {
                 const regex = new RegExp(`^(.+\\.)?${domain.replace('.', '\\.')}$`);
                 return regex.test(cleanHost);
-            });
+            }
+            // 默认使用'all'规则(完全匹配)
+            return cleanHost === domain;
+        };
+
+        // 增强版域名验证
+        const isAllowedDomain = (hostname) => {
+            return CONFIG.ALLOWED_DOMAINS.some(domainConfig => 
+                matchDomain(hostname, domainConfig)
+            );
         };
 
         // 安全验证模块
